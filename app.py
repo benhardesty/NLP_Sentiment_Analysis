@@ -181,10 +181,10 @@ def analyze_dataset(dataset):
     # Save the temporary file.
     # reviews.to_csv('tempFiles/tempFile.csv')
 
-
+    datasource = "The source of the datasets is <a target='_blank' href='https://nijianmo.github.io/amazon/index.html'>https://nijianmo.github.io/amazon/index.html</a>"
     datasetTable = reviews.head(10).to_html(classes='table table-striped table-hover table-sm table-responsive')
     accuracy = render_template('accuracy.html', class_report=class_report, conf_matrix=conf_matrix, accuracy=accuracy)
-    layout = render_template('choose-analysis.html', datasetname=dataset.capitalize(), output=render_template('data-exploration.html', accuracy=accuracy, images=images, datasetTable=datasetTable, coefficientTables=coefficientTables))
+    layout = render_template('choose-analysis.html', datasetname=dataset.capitalize(), datasource=datasource, output=render_template('data-exploration.html', accuracy=accuracy, images=images, datasetTable=datasetTable, coefficientTables=coefficientTables))
 
     return layout
 
