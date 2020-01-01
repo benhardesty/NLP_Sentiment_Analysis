@@ -1,0 +1,46 @@
+{% extends "index.html" %}
+
+{% block body %}
+
+<div id="choose-analytics" style="text-align:center;">
+  <b>Choose an amazon product reviews dataset to analyze</b><br/><br/>
+  <ul class="nav justify-content-center">
+    <li class="nav-item">
+      <a class="nav-link active trigger-server" href="{{ url_for('analyze_dataset', dataset='fashion') }}" method="POST">Fashion</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link trigger-server" href="{{ url_for('analyze_dataset', dataset='software') }}">Software</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link trigger-server" href="{{ url_for('analyze_dataset', dataset='beauty') }}">Beauty</a>
+    </li>
+  </ul>
+  <br/>
+  <div id="processing" style="display:none;">
+    <div id="spinner" class="spinner-border" role="status"><span class="sr-only">Loading...</span></div><br/><br/>
+    <span id="processing-message" style="color:green;">Please wait 30 seconds while the data is processed on the server.</span><br/><br/>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+<script>
+  $(document).ready(function(){
+    $('.trigger-server').click(function(){
+      $("#processing").css("display", "block");
+      $('.trigger-server').click(function(e) {
+        e.preventDefault();
+      });
+      $('.trigger-server').css({'color':'grey'})
+    });
+  })
+</script>
+
+<br/>
+<div style="text-align:center;">
+  <b>{{ datasetname }}</b>
+</div>
+<br/><br/>
+
+{{ output|safe }}
+
+{% endblock %}

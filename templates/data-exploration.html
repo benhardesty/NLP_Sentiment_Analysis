@@ -1,0 +1,56 @@
+<div class="row row-cols-1 row-cols-sm-3">
+  {% for image in images %}
+  <div class="col mb-4">
+    <div class="card">
+      <img src="../{{image[0]}}" class="card-img-top" alt="...">
+      <div class="card-body">
+        <h5 class="card-title">{{ image[1] }}</h5>
+        <p class="card-text">{{ image[2] }}</p>
+      </div>
+      <div class="card-footer">
+        <small class="text-muted">Last updated 3 seconds ago</small>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<br/><br/>
+
+{{ accuracy|safe }}
+
+<br/><br/><br/>
+<p style="text-align:center;">
+  <b>The classification algorithms use LinearSVC, Multinomial Naive Bayes, Logistic Regression, Stochastic Gradient, and Random Forest models to classify reviews.<br/>
+  Below is an explanation of the coefficients for the linear models.</b>
+</p>
+<br/><br/><br/>
+
+<div class="row row-cols-1 row-cols-sm-3">
+  {% for table in coefficientTables %}
+  <div class="col mb-4">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">{{ table[1] }}</h5>
+      </div>
+      {{ table[0]|safe }}
+      <div class="card-body">
+        <h6>Explanation</h6>
+        <p class="card-text">{{ table[2] }}</p>
+      </div>
+      <div class="card-footer">
+        <small class="text-muted">Last updated 3 seconds ago</small>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+<br/><br/><br/>
+
+
+<div style="text-align:center;">
+  <b>10 rows of the updated dataset</b><br/><br/><br/><br/>
+
+  {{ datasetTable|safe }}
+
+</div>

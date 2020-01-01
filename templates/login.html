@@ -1,0 +1,40 @@
+{% extends "index.html" %}
+
+{% block body %}
+
+<!-- Modal -->
+<div class="modal fade" id="staticBackdrop" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">Sign In</h5>
+      </div>
+      <div class="modal-body">
+        <form action="{{ url_for('login') }}" method="POST" enctype="multipart/form-data">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" class="form-control" id="username" name="username" aria-describedby="emailHelp" required>
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" class="form-control" id="password" name="password" required>
+          </div>
+          <div class="form-group form-check">
+            <label class="form-check-label" for="exampleCheck1">No Account? Please email our sales team.</label><br/>
+            {{ output|safe }}
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+<script>
+  $(document).ready(function(){
+    $('#staticBackdrop').modal('show');
+  })
+</script>
+
+{% endblock %}

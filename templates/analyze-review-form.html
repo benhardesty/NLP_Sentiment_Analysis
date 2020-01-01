@@ -1,0 +1,28 @@
+{% extends "index.html" %}
+
+{% block body %}
+
+<div style="text-align:center;">
+<form id="reviewForm" action="{{ url_for('analyzeReview') }}" method="POST">
+  <div class="form-group">
+    <label for="exampleInputPassword1">Enter in a product review to determine it's sentiment.</label>
+    <input type="textarea" class="form-control" id="review" name="review" placeholder="Review text..." required>
+  </div>
+  <button id="submitBtn" type="submit" class="btn btn-primary btn-block">Submit</button>
+  <div id="submitSpinner" class="spinner-border" role="status" hidden><span class="sr-only">Loading...</span></div>
+</form>
+<br/>
+  {{ output|safe }}
+</div>
+
+<script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+<script>
+  $(document).ready(function(){
+    $('#reviewForm').submit(function(){
+      $('#submitBtn').hide();
+      $('#submitSpinner').removeAttr('hidden');
+    });
+  })
+</script>
+
+{% endblock %}

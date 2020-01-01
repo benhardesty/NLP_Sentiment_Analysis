@@ -1,0 +1,15 @@
+<table class="table table-hover">
+  {% for row in matrix %}
+  <tr>
+  {% if loop.index0 == 0 %}
+    {% for col in row %}
+      <th>{{col}}</th>
+    {% endfor %}
+  {% else %}
+    {% for col in row %}
+      <td>{{col}}</td>
+    {% endfor %}
+  {% endif %}
+  </tr>
+  {% endfor %}
+</table>

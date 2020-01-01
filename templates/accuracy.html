@@ -1,0 +1,23 @@
+<br/>
+<div style="text-align:center;">
+  <b>Accuracy reports</b>
+</div>
+<br/><br/><br/>
+<div class="container">
+  <div class="row">
+    <div class="col-sm" style="text-align:center;">
+      <h3>Confusion Matrix</h3>
+      {{ conf_matrix|safe }}
+    </div>
+    <div class="col-sm" style="text-align:center;">
+      <h3>Classification Report</h3>
+      {{ class_report|safe }}
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm" style="text-align:center;">
+      <h5>Overall Accuracy: {{ accuracy|safe }}</h5>
+    </div>
+  </div>
+</div>
+<br/><br/>
