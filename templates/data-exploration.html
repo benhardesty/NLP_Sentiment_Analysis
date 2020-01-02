@@ -19,18 +19,22 @@
 
 {{ accuracy|safe }}
 
-<br/><br/><br/>
-<p style="text-align:center;">
-  <b>The classification algorithms use LinearSVC, Multinomial Naive Bayes, Logistic Regression, Stochastic Gradient, and Random Forest models to classify reviews.<br/>
-  Below is an explanation of the coefficients for the linear models.</b>
+<br/><br/>
+<div style="text-align:center;">
+  <b>Most Informative Features</b>
+</div>
+<br/><br/>
+<p>
+  <b>The classification algorithms use Linear Support Vector, Multinomial Naive Bayes, Logistic Regression, Stochastic Gradient Descent, and Random Forest classification models to classify reviews.
+    Below is an explanation of the coefficients for the linear models.</b>
 </p>
 <br/><br/><br/>
 
-<div class="row row-cols-1 row-cols-sm-3">
+<div class="row row-cols-1 row-cols-sm-2">
   {% for table in coefficientTables %}
   <div class="col mb-4">
     <div class="card">
-      <div class="card-body">
+      <div class="card-body" style="text-align:center;">
         <h5 class="card-title">{{ table[1] }}</h5>
       </div>
       {{ table[0]|safe }}

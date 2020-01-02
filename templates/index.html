@@ -19,9 +19,12 @@
           <li class="nav-item active">
             <a class="nav-link" href="/analyze-review">Analyze Review<span class="sr-only">(current)</span></a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/analyze-file">Analyze File</a>
+          <li class="nav-item active">
+            <a class="nav-link" href="/analyze-file">Analyze File<span class="sr-only">(current)</span></a>
           </li>
+          <!-- <li class="nav-item">
+            <a class="nav-link" href="/analyze-file">Analyze Reviews File</a>
+          </li> -->
         </ul>
         <a href="{{ url_for('logout') }}" style="color: inherit; text-decoration: none;"><button class="btn btn-outline-secondary my-2 my-sm-0" type="submit">Logout</button></a>
       </div>
@@ -31,7 +34,7 @@
       <div class="container">
         <img src="{{url_for('static', filename='images/favicon.png') }}" width=150px height=150px style="float:left; margin-top:-20px;">
         <h1 class="display-4">Sentiment Analytics</h1>
-        <p class="lead">Analyze the sentiment in product reviews</p>
+        <p class="lead">Using Natural Language Processing and Machine Learning to predict sentiment in product reviews</p>
       </div>
     </div>
   </header>

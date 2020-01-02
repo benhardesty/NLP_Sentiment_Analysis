@@ -3,7 +3,8 @@
 {% block body %}
 
 <div id="choose-analytics" style="text-align:center;">
-  <b>Choose an amazon product reviews dataset to analyze</b><br/><br/>
+  <b>Choose an amazon product reviews dataset to analyze</b><br/>
+  <small>Sentiment will be predicted based on the review text and then compared to the actual sentiment based on the stars in the review.</small><br/><br/>
   <ul class="nav justify-content-center">
     <li class="nav-item">
       <a class="nav-link active trigger-server" href="{{ url_for('analyze_dataset', dataset='fashion') }}" method="POST">Fashion</a>
