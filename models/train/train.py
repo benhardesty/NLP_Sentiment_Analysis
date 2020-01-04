@@ -31,12 +31,12 @@ def clean_review(text):
     5. Join the words back together and return the string.
     """
 
-    text = re.sub('[^A-Za-z]', ' ', text)
-    text = text.lower()
-    text = text.split()
-    text = [word for word in text if word not in stopwords_set]
-    text = [lemmatizer.lemmatize(word) for word in text]
-    return ' '.join(text)
+    nopunc = re.sub('[^A-Za-z]', ' ', text) # Remove all characters other than letters.
+    nopunc = nopunc.lower()
+    words = nopunc.split()
+    words = [word for word in words if word not in stopwords_set]
+    words = [lemmatizer.lemmatize(word) for word in words]
+    return ' '.join(words)
 
 print("start load data:", time.asctime(time.localtime(time.time())))
 

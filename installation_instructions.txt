@@ -1,0 +1,33 @@
+A. Prepare Files
+
+Windows/Mac/Linux
+1) Unzip the Capstone_Project folder.
+2) Unzip the randomForestClassifier.zip file and place the unzipped file in Capstone_Project/models.
+3) Install the python library "virtualenv" through conda or pip if you don't already have it.
+
+B. Create Virtual Environment and Install Libraries from the command line
+
+Linux/Mac
+
+1) Create a new virtual environment: type "virtualenv name"
+2) Activate the new virtual environment: type "source name/bin/activate"
+3) Navigate to the project root directory Capstone_Project
+3) Install the needed python libraries: type "pip install -r requirements.txt"
+4) Install the needed nltk libraries: type "python installNLTKLibraries.py"
+
+Windows:
+1) Create a new virtual environment: type "virtualenv name"
+2) Navigate to name\Scripts\
+3) Activate the virtual environment: type "activate.bat"
+4) Navigate to the project root directory Capstone_Project
+5) Install the needed python libraries: type "pip install -r requirements.txt"
+6) Install the needed nltk libraries: type "python installNLTKLibraries.py"
+
+
+If the above does not work and you have the anaconda python distribution installed, follow these steps:
+Windows
+1) Create a new virtual environment with the needed libraries: type "conda create --name env_name --file requirements.txt"
+2) Activate the environment: type "activate env_name"
+3) Navigate to the project root directory Capstone_Project
+4) Install the needed python libraries: type "pip install -r requirements.txt"
+5) Install the needed nltk libraries: type "python installNLTKLibraries.py"

@@ -6,6 +6,7 @@ import sys
 import io
 import base64
 import gc
+import csv
 
 import numpy as np
 import pandas as pd
@@ -62,6 +63,7 @@ def login():
 @app.route('/login/',methods=['POST'])
 def authenticate():
     """
+    Authenticate login.
     """
     # return render_template('login.html', output="you rock")
     if request.form['username'] == 'username' and request.form['password'] == 'password':
@@ -74,13 +76,16 @@ def authenticate():
 @app.route('/logout/')
 @require_login()
 def logout():
+    """
+    End a user's session and log out.
+    """
     session['logged_in'] = False
     return redirect(url_for('home'))
 
 @app.route('/data-exploration/<dataset>')
 def analyze_dataset(dataset):
     """
-
+    Analyze a dataset and return plots, accuracy reports, coefficient tables, and an updated dataset.
     """
     images = []
     reviews = pd.read_csv('data/{}.csv'.format(dataset),index_col=0)
@@ -92,15 +97,12 @@ def analyze_dataset(dataset):
     reviews.dropna(subset=['reviewTextClean'],inplace=True)
     freqdist = nltk.FreqDist(all_words)
 
-    # Create a sentiment column
+    # Create a sentiment and text length column
     reviews['actualSentiment'] = reviews['overall'].apply(lambda x: 1 if x >= 3 else 0)
-
-    # Create a column for the length of the reviews.
     reviews['length'] = reviews['reviewText'].apply(len)
 
-    X = reviews['reviewTextClean']
-
     # Predict the sentiment in the reviews.
+    X = reviews['reviewTextClean']
     mmc = MultiModelClassifier(1)
     predictions, confidence = mmc.predict(X)
 
@@ -120,6 +122,7 @@ def analyze_dataset(dataset):
     # Create tables explaining the coefficients of the linear models used by the MultiModelClassifier
     coefficientTables = createCoefficientsTables(mmc,freqdist)
 
+    # Update actual and predicted sentiment columns so they are easier to read on the charts that will be output.
     reviews['actualSentiment'] = reviews['actualSentiment'].apply(lambda x: 'good' if x == 1 else 'bad')
     reviews['predictedSentiment'] = reviews['predictedSentiment'].apply(lambda x: 'good' if x == 1 else 'bad')
 
@@ -135,7 +138,7 @@ def analyze_dataset(dataset):
     plot.set(xlabel='actual sentiment')
     plot.get_figure().tight_layout()
     # fig = plot.get_figure()
-    filename = "static/images/plots/countplot{}{}{}".format(random.randint(1000,2000),round(time.time()),'.png')
+    filename = "static/images/plots/countplot1{}{}{}".format(random.randint(1000,2000),round(time.time()),'.png')
     title = "Predicted Sentiment vs Actual Sentiment"
     description = "This graph shows the count of reviews categorized by predicted sentiment of good or bad. For the purposes of this application, 3-5 stars are considered good and 1-2 stars are considered bad. Within each predicted category, the reviews are further divided between those that actually had good sentiment and those that actually had bad sentiment."
     images.append([filename,title,description])
@@ -146,19 +149,6 @@ def analyze_dataset(dataset):
     # FigureCanvas(fig).print_png(buf)
     # return Response(buf.getvalue(),mimetype='image/png')
     plt.close()
-
-    # plot = sns.countplot(reviews['actualSentiment'])
-    # fig = plot.get_figure()
-    # filename = "static/images/plots/countplot{}{}{}".format(random.randint(1000,2000),round(time.time()),'.png')
-    # title = "Actual Sentiment"
-    # description = "This graph shows the count of reviews categorized by actual sentiment of good (1) or bad (0). For the purposes of this application, 1-2 stars are considered bad and 3-5 stars are considered good."
-    # images.append([filename,title,description])
-    # fig.tight_layout()
-    # fig.savefig(filename)
-    # # buf = io.BytesIO()
-    # # FigureCanvas(fig).print_png(buf)
-    # # return Response(buf.getvalue(),mimetype='image/png')
-    # plt.close()
 
     plt.rcParams['figure.figsize'] = (5,5)
     plt.rcParams['font.size'] = 12
@@ -196,12 +186,12 @@ def analyze_dataset(dataset):
     plt.rcParams['font.size'] = 12
     sns.set(rc={'font.size':12,'figure.figsize':(5,5)})
     plot = sns.distplot(reviews['length'],kde=False)
-    plot.set(xlabel='word length')
+    plot.set(xlabel='review length')
     plot.set(ylabel='count')
     fig = plot.get_figure()
     filename = "static/images/plots/distplot{}{}{}".format(random.randint(1000,2000),round(time.time()),'.png')
     title = "Review Length"
-    description = "This plot shows the distribution of reviews by the length of the review text."
+    description = "This plot shows the distribution of reviews by the length of the review text (number of characters)."
     images.append([filename,title,description])
     fig.tight_layout()
     fig.savefig(filename)
@@ -235,16 +225,14 @@ def analyze_dataset(dataset):
     # return Response(buf.getvalue(),mimetype='image/png')
     plt.close()
 
-    # Save the temporary file.
-    # reviews.to_csv('tempFiles/tempFile.csv')
-
     datasource = "The source of the dataset is <a target='_blank' href='https://nijianmo.github.io/amazon/index.html'>https://nijianmo.github.io/amazon/index.html</a>."
+
+    # Create the html and return it to the user.
     accuracy = render_template('accuracy.html', class_report=class_report, conf_matrix=conf_matrix, accuracy=accuracy)
     layout = render_template('choose-analysis.html', datasetname=dataset.capitalize(), datasource=datasource, output=render_template('data-exploration.html', accuracy=accuracy, images=images, datasetTable=datasetTable, coefficientTables=coefficientTables))
-
     return layout
 
-@app.route('/analyze-review/')
+@app.route('/analyze-content/')
 @require_login()
 def analyzeReview():
     """
@@ -252,7 +240,7 @@ def analyzeReview():
     """
     return render_template('analyze-review-form.html')
 
-@app.route('/analyze-review/',methods=['POST'])
+@app.route('/analyze-content/',methods=['POST'])
 @require_login()
 def predictReview():
     """
@@ -286,21 +274,29 @@ def predictFile():
     API to predict the sentiment in a csv file and return a table with sentiment and confidence columns appended.
     """
 
+    # Receive a file from the user.
     file = request.files.get('dataFile')
 
+    # Confirm that the file is a csv file.
     if file:
         mimetype = file.content_type
-        if mimetype != 'text/csv':
-            return render_template('analyze-file-form.html', output="<span style='color:red;'>File type must be <b>csv</b>.</span>")
+        if mimetype != 'text/csv' and mimetype != 'application/vnd.ms-excel':
+            return render_template('analyze-file-form.html', output="<span style='color:red;'>File type must be <b>csv</b>. Type was: {}</span>".format(mimetype))
     else:
         return render_template('analyze-file-form.html', output="<span style='color:red;'>Couldn't read file.</span>")
 
-    reviews = pd.read_csv(file)
+    # Attempt to read the csv file. Return if the file is empty and read fails.
+    try:
+        reviews = pd.read_csv(file)
+    except:
+        return render_template('analyze-file-form.html', output="<span style='color:red;'>File must be a csv file and cannot be empty.</span>")
 
+    # Return if the uploaded file doesn't have the required columns.
     if 'reviewText' not in reviews.columns:
         errorMessage = "<span style='color:red;'>File does not contain a <b>reviewText</b> column.</span>"
         return render_template('analyze-file-form.html', output=errorMessage)
 
+    # Create a frequency distriction of all the words.
     all_words = []
     reviews.dropna(subset=['reviewText'],inplace=True)
     reviews['reviewTextClean'] = reviews['reviewText'].apply(clean_review,all_words=all_words)
@@ -308,20 +304,27 @@ def predictFile():
     reviews['length'] = reviews['reviewText'].apply(len)
     freqdist = nltk.FreqDist(all_words)
 
+    # Check that at least one review had at least one meaningful word
+    if len(freqdist) == 0:
+        return render_template('analyze-file-form.html', output="<span style='color:red;'>File did not contain any reviews with any meaningful words.</span>")
+
+    # Predict the sentiment in the reviews. Return if the file doesn't contain any rows.
     X = reviews['reviewTextClean']
-
     mmc = MultiModelClassifier(1)
-
-    predictions, confidence = mmc.predict(X)
+    try:
+        predictions, confidence = mmc.predict(X)
+    except:
+        return render_template('analyze-file-form.html', output="<span style='color:red;'>File must contain at least one row.</span>")
 
     coefficientTables = createCoefficientsTables(mmc,freqdist)
 
+    # Append the prediction and confidence tables to the original dataset.
     reviews['predictedSentiment'] = predictions
     reviews['predictedSentimentConfidence'] = confidence
-    reviews.drop(['reviewTextClean'],axis=1,inplace=True)
 
     images = []
 
+    # Create data visualization charts to return to the user.
     plt.rcParams['figure.figsize'] = (5,5)
     plt.rcParams['font.size'] = 12
     sns.set(rc={'font.size':12,'figure.figsize':(5,5)})
@@ -351,29 +354,31 @@ def predictFile():
     plt.rcParams['font.size'] = 12
     sns.set(rc={'font.size':12,'figure.figsize':(5,5)})
     distplot = sns.distplot(reviews['length'],kde=False)
-    distplot.set(xlabel="word length")
+    distplot.set(xlabel="review length")
     distplot.set(ylabel="count")
     fig = distplot.get_figure()
     filename = "static/images/plots/distplot{}{}{}".format(random.randint(1000,2000),round(time.time()),'.png')
     title = "Review Length"
-    description = "This plot shows the distribution of reviews by the length of the review text."
+    description = "This plot shows the distribution of reviews by the length of the review text (number of characters)."
     images.append([filename,title,description])
     fig.tight_layout()
     fig.savefig(filename)
     plt.close()
 
-    plt.rcParams['figure.figsize'] = (5,5)
-    plt.rcParams['font.size'] = 12
-    sns.set(rc={'font.size':12,'figure.figsize':(5,5)})
-    heatmap = sns.heatmap(reviews.select_dtypes(['number']).corr(),cmap='coolwarm')
-    fig = heatmap.get_figure()
-    filename = "static/images/plots/heatmap{}{}{}".format(random.randint(1000,2000),round(time.time()),'.png')
-    title = "Variable Correlation Heatmap"
-    description = "This plot shows the correlation between the numeric variables in the dataset."
-    images.append([filename,title,description])
-    fig.tight_layout()
-    fig.savefig(filename)
-    plt.close()
+    # The seaborn heatmap requires at least 2 data points. Don't return a heatmap if a file with only 1 row is uploaded.
+    if len(freqdist) > 1:
+        plt.rcParams['figure.figsize'] = (5,5)
+        plt.rcParams['font.size'] = 12
+        sns.set(rc={'font.size':12,'figure.figsize':(5,5)})
+        heatmap = sns.heatmap(reviews.select_dtypes(['number']).corr(),cmap='coolwarm')
+        fig = heatmap.get_figure()
+        filename = "static/images/plots/heatmap{}{}{}".format(random.randint(1000,2000),round(time.time()),'.png')
+        title = "Variable Correlation Heatmap"
+        description = "This plot shows the correlation between the numeric variables in the dataset."
+        images.append([filename,title,description])
+        fig.tight_layout()
+        fig.savefig(filename)
+        plt.close()
 
     plt.rcParams['figure.figsize'] = (5,5)
     plt.rcParams['font.size'] = 12
@@ -386,12 +391,9 @@ def predictFile():
     plot.savefig(filename)
     plt.close()
 
+    # Save the file to allow the user to download it if they choose.
     filename = "tempFile{}{}".format(random.randint(0,1000),round(time.time()))
-
-    # Save the temporary file.
-    # reviews.to_csv('tempFiles/tempFile.csv')
     reviews.to_csv('tempFiles/{}.csv'.format(filename))
-
     datasetTable = """
     <div>
         <form action="\download-file\{}" method="GET"><button type="submit" class="btn btn-primary">Download Updated Dataset</button></form>
@@ -406,6 +408,7 @@ def predictFile():
 @require_login()
 def downloadFile(filename):
     """
+    Send the requested file to the user.
     """
     filename = re.sub('[^A-Za-z0-9]', '', filename) # Guard against attempts to gain access to the server
     return send_file('tempFiles/{}.csv'.format(filename), as_attachment=True, attachment_filename="updatedFile.csv")
@@ -424,204 +427,121 @@ def server_error(e):
 
 def createCoefficientsTables(mmc,freqdist):
     """
-    Create tables for the top 10 positive and negative coefficients for each of the 4 linear models used by the MultiModelClassifier.
+    Create tables for the top 10 most positive and negative coefficients for each of the 4 linear models used by the MultiModelClassifier.
     """
+
     tables = []
 
-    # table = [['Positive Words', 'Coefficient', 'Negative Words', 'Coefficient']]
-    # linearSVCCoefficients = mmc.linearSVCCoefficients()
-    # pos_linearSVCCoefficients = lastXCoefficients(10,linearSVCCoefficients,freqdist)
-    # neg_linearSVCCoefficients = firstXCoefficients(10,linearSVCCoefficients,freqdist)
-    #
-    # for i in range(10):
-    #     row = [pos_linearSVCCoefficients[i][0],pos_linearSVCCoefficients[i][1],neg_linearSVCCoefficients[i][0],neg_linearSVCCoefficients[i][1]]
-    #     table.append(row)
-    # table = render_template('table.html',matrix=table)
-    # tables.append([table, 'Linear Support Vector', 'These are the top 10 most positive and top 10 most negative words identified by the Linear Support Vector classification model. A positive coefficient increases likelihood that the predicted target value will be 1 while a negative coefficient increases the likelihood that the predicted target value will be 0.'])
-
-
-    table = [['Positive Words', 'Coefficient', 'Negative Words', 'Coefficient']]
     logisticRegressionCoefficients = mmc.logisticRegressionCoefficients()
-    # pos_logisticRegressionCoefficients = [['Positive Words', 'Coefficient']] + lastXCoefficients(10,logisticRegressionCoefficients,freqdist)
-    # neg_logisticRegressionCoefficients = [['Negative Words', 'Coefficient']] + firstXCoefficients(10,logisticRegressionCoefficients,freqdist)
     pos_logisticRegressionCoefficients = lastXCoefficients(10,logisticRegressionCoefficients,freqdist)
     neg_logisticRegressionCoefficients = firstXCoefficients(10,logisticRegressionCoefficients,freqdist)
-
-    for i in range(10):
-        row = [pos_logisticRegressionCoefficients[i][0],pos_logisticRegressionCoefficients[i][1],neg_logisticRegressionCoefficients[i][0],neg_logisticRegressionCoefficients[i][1]]
-        table.append(row)
-    table = render_template('table.html',matrix=table)
+    coefficientList = createCoefficientsList(pos_logisticRegressionCoefficients,neg_logisticRegressionCoefficients)
+    table = render_template('table.html',matrix=coefficientList)
     tables.append([table,'Logistic Regression', 'These are the top 10 most positive and top 10 most negative words identified by the Linear Support Vector classification model. A positive coefficient increases likelihood that the predicted target value will be 1 while a negative coefficient increases the likelihood that the predicted target value will be 0.'])
-    # pos_logisticRegressionCoefficients = render_template('table.html',matrix=pos_logisticRegressionCoefficients)
-    # neg_logisticRegressionCoefficients = render_template('table.html',matrix=neg_logisticRegressionCoefficients)
-    # tables.append([pos_logisticRegressionCoefficients,
-    #                 'Logistic Regression Coefficients - Positive',
-    #                 'These are the top 10 most positive words. A positive coefficient increases the resulting target value and increases the likelihood of the review being classified as positive.'])
-    # tables.append([neg_logisticRegressionCoefficients,
-    #                 'Logistic Regression Coefficients - Negative',
-    #                 'These are the top 10 most negative words. A negative coefficient decreases the resulting target value and increases the likelihood of the review being classified as negative.'])
 
-
-    table = [['Positive Words', 'Coefficient', 'Negative Words', 'Coefficient']]
     stochasticGradientCoefficients = mmc.stochasticGradientCoefficients()
-    # pos_stochasticGradientCoefficients = [['Positive Words', 'Coefficient']] + lastXCoefficients(10,stochasticGradientCoefficients,freqdist)
-    # neg_stochasticGradientCoefficients = [['Negative Words', 'Coefficient']] + firstXCoefficients(10,stochasticGradientCoefficients,freqdist)
     pos_stochasticGradientCoefficients = lastXCoefficients(10,stochasticGradientCoefficients,freqdist)
     neg_stochasticGradientCoefficients = firstXCoefficients(10,stochasticGradientCoefficients,freqdist)
-    for i in range(10):
-        row = [pos_stochasticGradientCoefficients[i][0],pos_stochasticGradientCoefficients[i][1],neg_stochasticGradientCoefficients[i][0],neg_stochasticGradientCoefficients[i][1]]
-        table.append(row)
-    table = render_template('table.html',matrix=table)
+    coefficientList = createCoefficientsList(pos_stochasticGradientCoefficients,neg_stochasticGradientCoefficients)
+    table = render_template('table.html',matrix=coefficientList)
     tables.append([table,'Stochastic Gradient Descent', 'These are the top 10 most positive and top 10 most negative words identified by the Stochastic Gradient Descent classification model. A positive coefficient increases likelihood that the predicted target value will be 1 while a negative coefficient increases the likelihood that the predicted target value will be 0.'])
-    # pos_stochasticGradientCoefficients = render_template('table.html',matrix=pos_stochasticGradientCoefficients)
-    # neg_stochasticGradientCoefficients = render_template('table.html',matrix=neg_stochasticGradientCoefficients)
-    # tables.append([pos_stochasticGradientCoefficients,
-    #                 'Stochastic Gradient Coefficients - Positive',
-    #                 'These are the top 10 most positive words. A positive coefficient increases the resulting target value and increases the likelihood of the review being classified as positive.'])
-    # tables.append([neg_stochasticGradientCoefficients,
-    #                 'Stochastic Gradient Coefficients - Negative',
-    #                 'These are the top 10 most negative words. A negative coefficient decreases the resulting target value and increases the likelihood of the review being classified as negative.'])
 
-    table = [['Positive Words', 'Coefficient', 'Negative Words', 'Coefficient']]
     linearSVCCoefficients = mmc.linearSVCCoefficients()
-    # pos_linearSVCCoefficients = [['Positive Words','Coefficient']] + lastXCoefficients(10,linearSVCCoefficients,freqdist)
-    # neg_linearSVCCoefficients = [['Negative Words','Coefficient']] + firstXCoefficients(10,linearSVCCoefficients,freqdist)
     pos_linearSVCCoefficients = lastXCoefficients(10,linearSVCCoefficients,freqdist)
     neg_linearSVCCoefficients = firstXCoefficients(10,linearSVCCoefficients,freqdist)
-    # pos_linearSVCCoefficients = render_template('table.html',matrix=pos_linearSVCCoefficients)
-    # neg_linearSVCCoefficients = render_template('table.html',matrix=neg_linearSVCCoefficients)
-    # tables.append([pos_linearSVCCoefficients,
-    #                 'LinearSVC Coefficients - Positive',
-    #                 'These are the top 10 most positive words. A positive coefficient increases the resulting target value and increases the likelihood of the review being classified as positive.'])
-    # tables.append([neg_linearSVCCoefficients,
-    #                 'LinearSVC Coefficients - Negative',
-    #                 'These are the top 10 most negative words. A negative coefficient decreases the resulting target value and increases the likelihood of the review being classified as negative.'])
-    for i in range(10):
-        row = [pos_linearSVCCoefficients[i][0],pos_linearSVCCoefficients[i][1],neg_linearSVCCoefficients[i][0],neg_linearSVCCoefficients[i][1]]
-        table.append(row)
-    table = render_template('table.html',matrix=table)
+    coefficientList = createCoefficientsList(pos_linearSVCCoefficients,neg_linearSVCCoefficients)
+    table = render_template('table.html',matrix=coefficientList)
     tables.append([table, 'Linear Support Vector', 'These are the top 10 most positive and top 10 most negative words identified by the Linear Support Vector classification model. A positive coefficient increases likelihood that the predicted target value will be 1 while a negative coefficient increases the likelihood that the predicted target value will be 0.'])
 
     table = [['Relevant Words', 'Coefficient', 'Irrelevant Words', 'Coefficient']]
     multinomialNBCoefficients = mmc.multinomialNBCoefficients()
-    # pos_multinomialNBCoefficients = [['Relevant Words', 'Coefficient']] + lastXCoefficients(10,multinomialNBCoefficients,freqdist)
-    # neg_multinomialNBCoefficients = [['Irrelevant Words', 'Coefficient']] + firstXCoefficients(10,multinomialNBCoefficients,freqdist)
-    pos_multinomialNBCoefficients = lastXCoefficients(10,multinomialNBCoefficients,freqdist)
-    neg_multinomialNBCoefficients = firstXCoefficients(10,multinomialNBCoefficients,freqdist)
-    for i in range(10):
-        row = [pos_multinomialNBCoefficients[i][0],pos_multinomialNBCoefficients[i][1],neg_multinomialNBCoefficients[i][0],neg_multinomialNBCoefficients[i][1]]
-        table.append(row)
-    table = render_template('table.html',matrix=table)
+    pos_multinomialNBCoefficients = lastXCoefficients(10,multinomialNBCoefficients,freqdist,ignorePositives=False)
+    neg_multinomialNBCoefficients = firstXCoefficients(10,multinomialNBCoefficients,freqdist,ignoreNegatives=False)
+    coefficientList = createCoefficientsList(pos_multinomialNBCoefficients,neg_multinomialNBCoefficients)
+    coefficientList[0][0] = 'Relevant Words'
+    coefficientList[0][2] = 'Irrelevant Words'
+    table = render_template('table.html',matrix=coefficientList)
     tables.append([table, 'Multinomial Naive Bayes', 'These are the top 10 most relevant and irrelevant words in respect to a review being classified as positive as identified by the Multinomial Naive Bayes model. Relevant words increase the likelihood of the review being classified as positive while irrelevant words have little impact on the classification.'])
-    # pos_multinomialNBCoefficients = render_template('table.html',matrix=pos_multinomialNBCoefficients)
-    # neg_multinomialNBCoefficients = render_template('table.html',matrix=neg_multinomialNBCoefficients)
-    # tables.append([pos_multinomialNBCoefficients,
-    #                 'Multinomial Naive Bayes - Relevant to Positive Sentiment',
-    #                 'These are the top 10 most relevant/positive words. The greater the coefficient, the greater the target value is increased, which increases the impact the word has on the review being classified as positive.'])
-    # tables.append([neg_multinomialNBCoefficients,
-    #                 'Multinomial Naive Bayes - Irrelevant to Positive Sentiment',
-    #                 'These are the top 10 least relevant/positive words. The smaller the coefficient, the less the target value is increased, which reduces the impact the word has on the review being classified as positive.'])
 
     return tables
 
-def firstXCoefficients(X, coefTupleList, frequencyDistribution):
+def createCoefficientsList(positiveCoefficientList,negativeCoefficientList):
     """
-    Identify the first 10 words in the reviews dataset that also appear in
-    the coefficient list, starting from the front to the back of the list.
+    Combine a list of positive and negative coefficients into a single list.
+    """
+
+    list = [['Positive Words', 'Coefficient', 'Negative Words', 'Coefficient']]
+
+    for i in range(max(len(positiveCoefficientList),len(negativeCoefficientList))):
+        row = []
+        if len(positiveCoefficientList) > i:
+            row.append(positiveCoefficientList[i][0])
+            row.append(positiveCoefficientList[i][1])
+        else:
+            row.append("")
+            row.append("")
+        if len(negativeCoefficientList) > i:
+            row.append(negativeCoefficientList[i][0])
+            row.append(negativeCoefficientList[i][1])
+        else:
+            row.append("")
+            row.append("")
+
+        list.append(row)
+
+    return list
+
+def firstXCoefficients(X, coefTupleList, frequencyDistribution, ignoreNegatives=True):
+    """
+    Identify the first x words in the coefTupleListt that also appear in
+    the frequencyDistribution, starting from the front to the back of the list.
+    By default, stop if a positive value is found.
     """
     coefficients = []
     for i in range(len(coefTupleList)):
         if coefTupleList[i][1] in frequencyDistribution:
+            if coefTupleList[i][0] > 0 and ignoreNegatives == True:
+                return coefficients
             coefficients.append([coefTupleList[i][1],round(coefTupleList[i][0],2)])
             if len(coefficients) == 10:
                 return coefficients
 
-def lastXCoefficients(X, coefTupleList, frequencyDistribution):
+    # Return the coefficients if there are less than 10
+    return coefficients
+
+def lastXCoefficients(X, coefTupleList, frequencyDistribution, ignorePositives=True):
     """
-    Identify the first 10 words in the reviews dataset that also appear in
-    the coefficient list, starting from the back to the front of the list.
+    Identify the last x words in the coefTupleListt that also appear in
+    the frequencyDistribution, starting from the back to the front of the list.
+    By default, stop if a negative value is found.
     """
     coefficients = []
     for i in range(len(coefTupleList)-1,-1,-1):
         if coefTupleList[i][1] in frequencyDistribution:
+            if coefTupleList[i][0] < 0 and ignorePositives == True:
+                return coefficients
             coefficients.append([coefTupleList[i][1],round(coefTupleList[i][0],2)])
             if len(coefficients) == 10:
                 return coefficients
+
+    # Return the coefficients if there are less than 10
+    return coefficients
 
 def createTableFromClassificationReport(class_report):
     """
     Create a table to display a classification_report.
     """
     cr = class_report.split()
-    table = """
-    <table class="table table-hover">
-        <tr>
-            <td></td>
-            <th>precision</th>
-            <th>recall</th>
-            <th>f1-score</th>
-            <th>support</th>
-        </tr>
-        <tr>
-            <th>{}</th>
-            <td>{}</td>
-            <td>{}</td>
-            <td>{}</td>
-            <td>{}</td>
-        </tr>
-        <tr>
-            <th>{}</th>
-            <td>{}</td>
-            <td>{}</td>
-            <td>{}</td>
-            <td>{}</td>
-        </tr>
-    </table>
-    """.format(cr[4],cr[5],cr[6],cr[7],cr[8],cr[9],cr[10],cr[11],cr[12],cr[13])
-    return table
+    classes = []
+    classes.append([cr[4],cr[5],cr[6],cr[7],cr[8]])
+    classes.append([cr[9],cr[10],cr[11],cr[12],cr[13]])
+    return render_template('classification-report-table.html', classes=classes)
 
 def createTableFromConfusionMatrix(conf_matrix):
     """
     Create a table to show a confusion_matrix.
     """
-    table = """
-    <table class="table table-hover">
-        <tr>
-            <td></td>
-            <td></td>
-            <th colspan="3">Predicted Sentiment</th>
-        </tr>
-        <tr>
-            <td></td>
-            <td></td>
-            <th>Negative</th>
-            <th>Positive</th>
-            <th>Total</th>
-        </tr>
-        <tr>
-            <th rowspan="4" style="text-align:center;">Actual Sentiment</th>
-        </tr>
-        <tr>
-            <th>Negative</th>
-            <td>{}</td>
-            <td>{}</td>
-            <td>{}</td>
-        </tr>
-        <tr>
-            <th>Positive</th>
-            <td>{}</td>
-            <td>{}</td>
-            <td>{}</td>
-        </tr>
-        <tr>
-            <th>Total</th>
-            <td>{}</td>
-            <td>{}</td>
-            <td>{}</td>
-        </tr>
-    </table>
-    """.format(conf_matrix[0][0],conf_matrix[0][1],conf_matrix[0][0]+conf_matrix[0][1],conf_matrix[1][0],conf_matrix[1][1],conf_matrix[1][0]+conf_matrix[1][1],conf_matrix[0][0]+conf_matrix[1][0],conf_matrix[0][1]+conf_matrix[1][1],conf_matrix[0][0]+conf_matrix[1][0]+conf_matrix[0][1]+conf_matrix[1][1])
-    return table
+    return render_template('confusion-matrix-table.html', conf_matrix=conf_matrix)
 
 def clean_review(text,all_words=None):
     """
@@ -633,14 +553,14 @@ def clean_review(text,all_words=None):
     5. Join the words back together and return the string.
     """
 
-    text = re.sub('[^A-Za-z]', ' ', text) # Remove all characters other than letters.
-    text = text.lower()
-    text = text.split()
-    text = [word for word in text if word not in stopwords_set]
-    text = [lemmatizer.lemmatize(word) for word in text]
+    nopunc = re.sub('[^A-Za-z]', ' ', text) # Remove all characters other than letters.
+    nopunc = nopunc.lower()
+    words = nopunc.split()
+    words = [word for word in words if word not in stopwords_set]
+    words = [lemmatizer.lemmatize(word) for word in words]
     if all_words != None:
-        [all_words.append(word) for word in text]
-    return ' '.join(text)
+        [all_words.append(word) for word in words]
+    return ' '.join(words)
 
 if __name__ == '__main__':
     stopwords_set = set(nltk.corpus.stopwords.words('english'))

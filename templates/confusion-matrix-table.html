@@ -1,0 +1,35 @@
+<table class="table table-hover">
+    <tr>
+        <td></td>
+        <td></td>
+        <th colspan="3">Predicted Sentiment</th>
+    </tr>
+    <tr>
+        <td></td>
+        <td></td>
+        <th>Negative</th>
+        <th>Positive</th>
+        <th>Total</th>
+    </tr>
+    <tr>
+        <th rowspan="4" style="text-align:center;">Actual Sentiment</th>
+    </tr>
+    <tr>
+        <th>Negative</th>
+        <td>{{ conf_matrix[0][0] }}</td>
+        <td>{{ conf_matrix[0][1] }}</td>
+        <td>{{ conf_matrix[0][0]+conf_matrix[0][1] }}</td>
+    </tr>
+    <tr>
+        <th>Positive</th>
+        <td>{{ conf_matrix[1][0] }}</td>
+        <td>{{ conf_matrix[1][1] }}</td>
+        <td>{{ conf_matrix[1][0]+conf_matrix[1][1] }}</td>
+    </tr>
+    <tr>
+        <th>Total</th>
+        <td>{{ conf_matrix[0][0]+conf_matrix[1][0] }}</td>
+        <td>{{ conf_matrix[0][1]+conf_matrix[1][1] }}</td>
+        <td>{{ conf_matrix[0][0]+conf_matrix[1][0]+conf_matrix[0][1]+conf_matrix[1][1] }}</td>
+    </tr>
+</table>
