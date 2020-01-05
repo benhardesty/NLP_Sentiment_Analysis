@@ -31,13 +31,15 @@ from wordcloud import WordCloud, STOPWORDS
 app = Flask(__name__)
 app.secret_key = "super secret key"
 app.config['MAX_CONTENT_LENGTH'] = 10 * 2**20
+datasets = ['Fashion', 'Software', 'Electronics']
 
 def require_login():
     def decorator(f):
         @wraps(f)
         def wrapped(*args, **kwargs):
             if not session.get('logged_in'):
-                return redirect(url_for('login'))
+                # return redirect(url_for('login'))
+                return f(*args, **kwargs)
             else:
                 return f(*args, **kwargs)
         return wrapped
@@ -49,9 +51,7 @@ def home():
     """
     UI for home page.
     """
-    jumboTitle="Amazon Product Reviews"
-    jumboSubTitle="Sentiment Analysis and Data Exploration of amazon product reviews."
-    return render_template('choose-analysis.html')
+    return render_template('choose-analysis.html',datasets=datasets)
 
 @app.route('/login/')
 def login():
@@ -88,7 +88,7 @@ def analyze_dataset(dataset):
     Analyze a dataset and return plots, accuracy reports, coefficient tables, and an updated dataset.
     """
     images = []
-    reviews = pd.read_csv('data/{}.csv'.format(dataset),index_col=0)
+    reviews = pd.read_csv('data/{}.csv'.format(dataset.lower()),index_col=0)
 
     # Clean the reviews and get a frequency distribution of all the words.
     all_words = []
@@ -229,7 +229,7 @@ def analyze_dataset(dataset):
 
     # Create the html and return it to the user.
     accuracy = render_template('accuracy.html', class_report=class_report, conf_matrix=conf_matrix, accuracy=accuracy)
-    layout = render_template('choose-analysis.html', datasetname=dataset.capitalize(), datasource=datasource, output=render_template('data-exploration.html', accuracy=accuracy, images=images, datasetTable=datasetTable, coefficientTables=coefficientTables))
+    layout = render_template('choose-analysis.html', datasets=datasets, datasetname=dataset.title(), datasource=datasource, output=render_template('data-exploration.html', accuracy=accuracy, images=images, datasetTable=datasetTable, coefficientTables=coefficientTables))
     return layout
 
 @app.route('/analyze-content/')

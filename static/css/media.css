@@ -1,0 +1,17 @@
+@media (min-width: 1px) {
+  #main-content {
+    width=100%;
+  }
+}
+
+@media (min-width: 992px) {
+  #main-content {
+    width: 85%;
+  }
+}
+
+@media (min-width: 1500px) {
+  #main-content {
+    width: 75%;
+  }
+}

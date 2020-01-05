@@ -2,14 +2,15 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8">
-    <title>Sentiment Analysis</title>
+    <title>Sentiment Analytics</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/media.css') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
   </head>
 
   <header>
     <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top" style="opacity:0.8;">
-      <a class="navbar-brand" href="/">Sentiment Prediction Demo</a>
+      <a class="navbar-brand" href="/">Amazon Product Reviews</a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -22,11 +23,8 @@
           <li class="nav-item active">
             <a class="nav-link" href="/analyze-file">Analyze File<span class="sr-only">(current)</span></a>
           </li>
-          <!-- <li class="nav-item">
-            <a class="nav-link" href="/analyze-file">Analyze Reviews File</a>
-          </li> -->
         </ul>
-        <a href="{{ url_for('logout') }}" style="color: inherit; text-decoration: none;"><button class="btn btn-outline-secondary my-2 my-sm-0" type="submit">Logout</button></a>
+        <a href="{{ url_for('logout') }}" style="color: inherit; text-decoration: none;" hidden><button class="btn btn-outline-secondary my-2 my-sm-0" type="submit">Logout</button></a>
       </div>
     </nav>
 
@@ -42,7 +40,7 @@
   <body>
 
 
-    <div class="container-fluid" style="min-height:100%; width: 75%;">
+    <div id="main-content" class="container-fluid">
 
       {% block body %}
 
