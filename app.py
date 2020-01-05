@@ -65,13 +65,18 @@ def authenticate():
     """
     Authenticate login.
     """
-    # return render_template('login.html', output="you rock")
-    if request.form['username'] == 'username' and request.form['password'] == 'password':
+    # username = request.form['username']
+    # password = request.form['password']
+
+    # No login needed for this demo project. This is for reference for future projects only.
+    loginsuccessful = True
+
+    if loginsuccessful:
         session['logged_in'] = True
         return redirect(url_for('home'))
-
-    output = '<label class="form-check-label" for="exampleCheck1" style="color:red;">Login was unsuccessful</label>'
-    return render_template('login.html', output=output)
+    else:
+        output = '<label class="form-check-label" for="exampleCheck1" style="color:red;">Login was unsuccessful</label>'
+        return render_template('login.html', output=output)
 
 @app.route('/logout/')
 @require_login()
