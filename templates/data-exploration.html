@@ -2,7 +2,7 @@
   {% for image in images %}
   <div class="col mb-4">
     <div class="card">
-      <img src="../{{image[0]}}" class="card-img-top" alt="...">
+      <img src="{{ url_for('static', filename=image[0][7:]) }}" class="card-img-top" alt="...">
       <div class="card-body">
         <h5 class="card-title">{{ image[1] }}</h5>
         <p class="card-text">{{ image[2] }}</p>
