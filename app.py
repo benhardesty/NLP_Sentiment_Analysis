@@ -254,7 +254,7 @@ def predictReview():
 
     X = [clean_review(request.form['review'])]
 
-    mmc = MultiModelClassifier(3)
+    mmc = MultiModelClassifier(2)
     prediction, confidence = mmc.predict(X)
 
     if prediction[0] == 1:

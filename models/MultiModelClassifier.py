@@ -29,22 +29,23 @@ class MultiModelClassifier:
         self.linearSVC = pickle.load(file)
         file.close()
 
-        file = open("models/randomForestClassifier.pickle","rb")
-        self.randomForestClassifier = pickle.load(file)
-        file.close()
+        # file = open("models/randomForestClassifier.pickle","rb")
+        # self.randomForestClassifier = pickle.load(file)
+        # file.close()
 
     def predict(self, X):
         X = self.cv.transform(X)
-        predictions = self.multinomialNB.predict(X) + self.logisticRegression.predict(X) + self.sgdClassifier.predict(X) + self.linearSVC.predict(X) + self.randomForestClassifier.predict(X)
+        # predictions = self.multinomialNB.predict(X) + self.logisticRegression.predict(X) + self.sgdClassifier.predict(X) + self.linearSVC.predict(X) + self.randomForestClassifier.predict(X)
+        predictions = self.multinomialNB.predict(X) + self.logisticRegression.predict(X) + self.sgdClassifier.predict(X) + self.linearSVC.predict(X)
         confidence = []
 
         for i, prediction in enumerate(predictions):
             if prediction >= self.confidence_standard :
                 predictions[i] = 1
-                confidence.append(prediction/5)
+                confidence.append(prediction/4)
             else:
                 predictions[i] = 0
-                confidence.append((5-prediction)/5)
+                confidence.append((4-prediction)/4)
 
         return predictions, confidence
 
