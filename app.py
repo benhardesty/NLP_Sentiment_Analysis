@@ -30,7 +30,7 @@ from wordcloud import WordCloud, STOPWORDS
 
 app = Flask(__name__)
 app.secret_key = "super secret key"
-app.config['MAX_CONTENT_LENGTH'] = 3.7 * 2**20
+app.config['MAX_CONTENT_LENGTH'] = 1.5 * 2**20
 datasets = ['Fashion', 'Software', 'Electronics']
 stopwords_set = set(nltk.corpus.stopwords.words('english'))
 lemmatizer = WordNetLemmatizer()
