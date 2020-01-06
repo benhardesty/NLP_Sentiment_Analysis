@@ -437,7 +437,7 @@ def page_not_found(e):
 
 @app.errorhandler(500)
 def server_error(e):
-    return render_template('choose-analysis.html', output="<span>Oops! This server's processing is limited since this is just a demo application. There must have been multiple people processing data at the same time, please try again!</span>")
+    return render_template('choose-analysis.html', output="<span>Oops! As this is just a demo application, the server's processing power is limited. There were likely multiple people processing data at the same time. Please try again!</span>")
 
 def createCoefficientsTables(mmc,freqdist):
     """
