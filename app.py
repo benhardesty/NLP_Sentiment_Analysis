@@ -137,9 +137,6 @@ def analyze_dataset(dataset):
     reviews['actualSentiment'] = reviews['actualSentiment'].apply(lambda x: 'good' if x == 1 else 'bad')
     reviews['predictedSentiment'] = reviews['predictedSentiment'].apply(lambda x: 'good' if x == 1 else 'bad')
 
-    print("start plots:", time.asctime(time.localtime(time.time())))
-
-    print("start countplot:", time.asctime(time.localtime(time.time())))
     # Create plots to explore the data.
     plt.rcParams['figure.figsize'] = (5,5)
     plt.rcParams['font.size'] = 12
@@ -164,7 +161,6 @@ def analyze_dataset(dataset):
     # return Response(buf.getvalue(),mimetype='image/png')
     plt.close()
 
-    print("start countplot:", time.asctime(time.localtime(time.time())))
     plt.rcParams['figure.figsize'] = (5,5)
     plt.rcParams['font.size'] = 12
     sns.set(rc={'font.size':12,'figure.figsize':(5,5)})
@@ -182,7 +178,6 @@ def analyze_dataset(dataset):
     # return Response(buf.getvalue(),mimetype='image/png')
     plt.close()
 
-    print("start wordcloud:", time.asctime(time.localtime(time.time())))
     plt.rcParams['figure.figsize'] = (5,5)
     plt.rcParams['font.size'] = 12
     sns.set(rc={'font.size':12,'figure.figsize':(5,5)})
@@ -198,7 +193,6 @@ def analyze_dataset(dataset):
     # return wordcloud
     plt.close()
 
-    print("start word length:", time.asctime(time.localtime(time.time())))
     plt.rcParams['figure.figsize'] = (5,5)
     plt.rcParams['font.size'] = 12
     sns.set(rc={'font.size':12,'figure.figsize':(5,5)})
@@ -214,7 +208,6 @@ def analyze_dataset(dataset):
     fig.savefig(filename)
     plt.close()
 
-    print("start heatmap:", time.asctime(time.localtime(time.time())))
     plt.rcParams['figure.figsize'] = (5,5)
     plt.rcParams['font.size'] = 12
     sns.set(rc={'font.size':12,'figure.figsize':(5,5)})
@@ -243,8 +236,6 @@ def analyze_dataset(dataset):
     # # FigureCanvas(fig).print_png(buf)
     # # return Response(buf.getvalue(),mimetype='image/png')
     # plt.close()
-
-    print("end plots:", time.asctime(time.localtime(time.time())))
 
     datasource = "The source of the dataset is <a target='_blank' href='https://nijianmo.github.io/amazon/index.html'>https://nijianmo.github.io/amazon/index.html</a>."
 
@@ -446,7 +437,7 @@ def page_not_found(e):
 
 @app.errorhandler(500)
 def server_error(e):
-    return render_template('choose-analysis.html', output="<span>An error occurred. Please try again.</span>")
+    return render_template('choose-analysis.html', output="<span>Oops! This server's processing is limited since this is just a demo application. There must have been multiple people processing data at the same time, please try again!</span>")
 
 def createCoefficientsTables(mmc,freqdist):
     """
