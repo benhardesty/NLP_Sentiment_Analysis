@@ -130,8 +130,8 @@ def analyze_dataset(dataset):
     coefficientTables = createCoefficientsTables(mmc,freqdist)
 
     # Update actual and predicted sentiment columns so they are easier to read on the charts that will be output.
-    reviews['actualSentiment'] = reviews['actualSentiment'].apply(lambda x: 'good' if x == 1 else 'bad')
-    reviews['predictedSentiment'] = reviews['predictedSentiment'].apply(lambda x: 'good' if x == 1 else 'bad')
+    reviews['actualSentiment'] = reviews['actualSentiment'].apply(lambda x: 'positive' if x == 1 else 'negative')
+    reviews['predictedSentiment'] = reviews['predictedSentiment'].apply(lambda x: 'positive' if x == 1 else 'negative')
 
     # Create plots to explore the data.
     plt.rcParams['figure.figsize'] = (5,5)
@@ -147,7 +147,7 @@ def analyze_dataset(dataset):
     # fig = plot.get_figure()
     filename = "static/images/plots/countplot1{}{}{}".format(random.randint(1000,2000),round(time.time()),'.png')
     title = "Predicted Sentiment vs Actual Sentiment"
-    description = "This graph shows the count of reviews categorized by predicted sentiment of good or bad. For the purposes of this application, 3-5 stars are considered good and 1-2 stars are considered bad. Within each predicted category, the reviews are further divided between those that actually had good sentiment and those that actually had bad sentiment."
+    description = "This graph shows the count of reviews categorized by predicted sentiment of positive or negative vs the actual sentiment of positive or negative. For the purposes of this application, 3-5 stars are considered positive and 1-2 stars are considered negative."
     images.append([filename,title,description])
     # fig.tight_layout()
     plt.savefig(filename)
@@ -330,6 +330,20 @@ def predictFile():
     reviews['predictedSentiment'] = predictions
     reviews['predictedSentimentConfidence'] = confidence
 
+    # Save the file to allow the user to download it if they choose.
+    filename = "tempFile{}{}".format(random.randint(0,1000),round(time.time()))
+    reviews.to_csv('tempFiles/{}.csv'.format(filename))
+    datasetTable = """
+    <div>
+        <form action="\download-file\{}" method="GET"><button type="submit" class="btn btn-primary">Download Updated Dataset</button></form>
+        <br/>
+        {}
+    </div>
+    """.format(filename,reviews.head(10).to_html(classes='table table-striped table-hover table-sm table-responsive'))
+
+    # Update actual and predicted sentiment columns so they are easier to read on the charts that will be output.
+    reviews['predictedSentiment'] = reviews['predictedSentiment'].apply(lambda x: 'positive' if x == 1 else 'negative')
+
     images = []
 
     # Create data visualization charts to return to the user.
@@ -399,17 +413,6 @@ def predictFile():
     # images.append([filename,title,description])
     # plot.savefig(filename)
     # plt.close()
-
-    # Save the file to allow the user to download it if they choose.
-    filename = "tempFile{}{}".format(random.randint(0,1000),round(time.time()))
-    reviews.to_csv('tempFiles/{}.csv'.format(filename))
-    datasetTable = """
-    <div>
-        <form action="\download-file\{}" method="GET"><button type="submit" class="btn btn-primary">Download Updated Dataset</button></form>
-        <br/>
-        {}
-    </div>
-    """.format(filename,reviews.head(10).to_html(classes='table table-striped table-hover table-sm table-responsive'))
 
     return render_template('analyze-file-form.html', output=render_template('data-exploration.html', images=images, datasetTable=datasetTable, coefficientTables=coefficientTables))
 
