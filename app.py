@@ -571,4 +571,4 @@ if __name__ == '__main__':
     stopwords_set = set(nltk.corpus.stopwords.words('english'))
     lemmatizer = WordNetLemmatizer()
 
-    app.run(debug=False)
+    app.run(debug=True)
