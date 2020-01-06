@@ -97,25 +97,21 @@ def analyze_dataset(dataset):
     images = []
     reviews = pd.read_csv('data/{}.csv'.format(dataset.lower()),index_col=0)
 
-    print("start clean:", time.asctime(time.localtime(time.time())))
     # Clean the reviews and get a frequency distribution of all the words.
     all_words = []
     reviews.dropna(subset=['reviewText'],inplace=True)
     reviews['reviewTextClean'] = reviews['reviewText'].apply(clean_review, all_words=all_words)
     reviews.dropna(subset=['reviewTextClean'],inplace=True)
     freqdist = nltk.FreqDist(all_words)
-    print("end clean:", time.asctime(time.localtime(time.time())))
 
     # Create a sentiment and text length column
     reviews['actualSentiment'] = reviews['overall'].apply(lambda x: 1 if x >= 3 else 0)
     reviews['length'] = reviews['reviewText'].apply(len)
 
-    print("start predict:", time.asctime(time.localtime(time.time())))
     # Predict the sentiment in the reviews.
     X = reviews['reviewTextClean']
     mmc = MultiModelClassifier(1)
     predictions, confidence = mmc.predict(X)
-    print("end predict:", time.asctime(time.localtime(time.time())))
 
     # Add sentiment and confidence to the output data.
     reviews['predictedSentiment'] = predictions
@@ -242,7 +238,6 @@ def analyze_dataset(dataset):
     # Create the html and return it to the user.
     accuracy = render_template('accuracy.html', class_report=class_report, conf_matrix=conf_matrix, accuracy=accuracy)
     layout = render_template('choose-analysis.html', datasets=datasets, datasetname=dataset.title(), datasource=datasource, output=render_template('data-exploration.html', accuracy=accuracy, images=images, datasetTable=datasetTable, coefficientTables=coefficientTables))
-    print("return to UI:", time.asctime(time.localtime(time.time())))
     return layout
 
 @app.route('/analyze-content/')
