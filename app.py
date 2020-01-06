@@ -32,6 +32,8 @@ app = Flask(__name__)
 app.secret_key = "super secret key"
 app.config['MAX_CONTENT_LENGTH'] = 10 * 2**20
 datasets = ['Fashion', 'Software', 'Electronics']
+stopwords_set = set(nltk.corpus.stopwords.words('english'))
+lemmatizer = WordNetLemmatizer()
 
 def require_login():
     def decorator(f):
@@ -568,7 +570,4 @@ def clean_review(text,all_words=None):
     return ' '.join(words)
 
 if __name__ == '__main__':
-    stopwords_set = set(nltk.corpus.stopwords.words('english'))
-    lemmatizer = WordNetLemmatizer()
-
     app.run(debug=True)
