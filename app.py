@@ -97,21 +97,25 @@ def analyze_dataset(dataset):
     images = []
     reviews = pd.read_csv('data/{}.csv'.format(dataset.lower()),index_col=0)
 
+    print("start clean:", time.asctime(time.localtime(time.time())))
     # Clean the reviews and get a frequency distribution of all the words.
     all_words = []
     reviews.dropna(subset=['reviewText'],inplace=True)
     reviews['reviewTextClean'] = reviews['reviewText'].apply(clean_review, all_words=all_words)
     reviews.dropna(subset=['reviewTextClean'],inplace=True)
     freqdist = nltk.FreqDist(all_words)
+    print("end clean:", time.asctime(time.localtime(time.time())))
 
     # Create a sentiment and text length column
     reviews['actualSentiment'] = reviews['overall'].apply(lambda x: 1 if x >= 3 else 0)
     reviews['length'] = reviews['reviewText'].apply(len)
 
+    print("start predict:", time.asctime(time.localtime(time.time())))
     # Predict the sentiment in the reviews.
     X = reviews['reviewTextClean']
     mmc = MultiModelClassifier(1)
     predictions, confidence = mmc.predict(X)
+    print("end predict:", time.asctime(time.localtime(time.time())))
 
     # Add sentiment and confidence to the output data.
     reviews['predictedSentiment'] = predictions
@@ -133,15 +137,18 @@ def analyze_dataset(dataset):
     reviews['actualSentiment'] = reviews['actualSentiment'].apply(lambda x: 'good' if x == 1 else 'bad')
     reviews['predictedSentiment'] = reviews['predictedSentiment'].apply(lambda x: 'good' if x == 1 else 'bad')
 
+    print("start plots:", time.asctime(time.localtime(time.time())))
+
+    print("start countplot:", time.asctime(time.localtime(time.time())))
     # Create plots to explore the data.
     plt.rcParams['figure.figsize'] = (5,5)
     plt.rcParams['font.size'] = 12
     sns.set(rc={'font.size':12,'figure.figsize':(5,5)})
     fig, ax =plt.subplots(1,2)
-    plot = sns.countplot(reviews['predictedSentiment'],palette='viridis',ax=ax[0])
+    plot = sns.countplot(reviews['predictedSentiment'],palette='viridis',ax=ax[0],order=reviews['predictedSentiment'].value_counts().index)
     plot.set(xlabel='predicted sentiment')
     plot.get_figure().tight_layout()
-    plot = sns.countplot(reviews['actualSentiment'],palette='viridis',ax=ax[1])
+    plot = sns.countplot(reviews['actualSentiment'],palette='viridis',ax=ax[1],order=reviews['predictedSentiment'].value_counts().index)
     plot.set(xlabel='actual sentiment')
     plot.get_figure().tight_layout()
     # fig = plot.get_figure()
@@ -157,6 +164,7 @@ def analyze_dataset(dataset):
     # return Response(buf.getvalue(),mimetype='image/png')
     plt.close()
 
+    print("start countplot:", time.asctime(time.localtime(time.time())))
     plt.rcParams['figure.figsize'] = (5,5)
     plt.rcParams['font.size'] = 12
     sns.set(rc={'font.size':12,'figure.figsize':(5,5)})
@@ -174,6 +182,7 @@ def analyze_dataset(dataset):
     # return Response(buf.getvalue(),mimetype='image/png')
     plt.close()
 
+    print("start wordcloud:", time.asctime(time.localtime(time.time())))
     plt.rcParams['figure.figsize'] = (5,5)
     plt.rcParams['font.size'] = 12
     sns.set(rc={'font.size':12,'figure.figsize':(5,5)})
@@ -189,6 +198,7 @@ def analyze_dataset(dataset):
     # return wordcloud
     plt.close()
 
+    print("start word length:", time.asctime(time.localtime(time.time())))
     plt.rcParams['figure.figsize'] = (5,5)
     plt.rcParams['font.size'] = 12
     sns.set(rc={'font.size':12,'figure.figsize':(5,5)})
@@ -204,6 +214,7 @@ def analyze_dataset(dataset):
     fig.savefig(filename)
     plt.close()
 
+    print("start heatmap:", time.asctime(time.localtime(time.time())))
     plt.rcParams['figure.figsize'] = (5,5)
     plt.rcParams['font.size'] = 12
     sns.set(rc={'font.size':12,'figure.figsize':(5,5)})
@@ -217,26 +228,30 @@ def analyze_dataset(dataset):
     fig.savefig(filename)
     plt.close()
 
-    plt.rcParams['figure.figsize'] = (5,5)
-    plt.rcParams['font.size'] = 12
-    sns.set(rc={'font.size':12,'figure.figsize':(5,5)})
-    plot = sns.pairplot(reviews.select_dtypes(['number']).drop(['predictedSentimentConfidence'],axis=1).dropna())
-    filename = "static/images/plots/pairplot{}{}{}".format(random.randint(1000,2000),round(time.time()),'.png')
-    title = "Pair Plot"
-    description = "This graph provides a scatterplot plotting each numeric variable against all the others to identify trends."
-    images.append([filename,title,description])
-    plot.savefig(filename)
-    # fig = plot.fig
-    # buf = io.BytesIO()
-    # FigureCanvas(fig).print_png(buf)
-    # return Response(buf.getvalue(),mimetype='image/png')
-    plt.close()
+    # Pairplot takes too much time and provides too little value.
+    # plt.rcParams['figure.figsize'] = (5,5)
+    # plt.rcParams['font.size'] = 12
+    # sns.set(rc={'font.size':12,'figure.figsize':(5,5)})
+    # plot = sns.pairplot(reviews.select_dtypes(['number']).drop(['predictedSentimentConfidence'],axis=1).dropna())
+    # filename = "static/images/plots/pairplot{}{}{}".format(random.randint(1000,2000),round(time.time()),'.png')
+    # title = "Pair Plot"
+    # description = "This graph provides a scatterplot plotting each numeric variable against all the others to identify trends."
+    # images.append([filename,title,description])
+    # plot.savefig(filename)
+    # # fig = plot.fig
+    # # buf = io.BytesIO()
+    # # FigureCanvas(fig).print_png(buf)
+    # # return Response(buf.getvalue(),mimetype='image/png')
+    # plt.close()
+
+    print("end plots:", time.asctime(time.localtime(time.time())))
 
     datasource = "The source of the dataset is <a target='_blank' href='https://nijianmo.github.io/amazon/index.html'>https://nijianmo.github.io/amazon/index.html</a>."
 
     # Create the html and return it to the user.
     accuracy = render_template('accuracy.html', class_report=class_report, conf_matrix=conf_matrix, accuracy=accuracy)
     layout = render_template('choose-analysis.html', datasets=datasets, datasetname=dataset.title(), datasource=datasource, output=render_template('data-exploration.html', accuracy=accuracy, images=images, datasetTable=datasetTable, coefficientTables=coefficientTables))
+    print("return to UI:", time.asctime(time.localtime(time.time())))
     return layout
 
 @app.route('/analyze-content/')
@@ -346,7 +361,7 @@ def predictFile():
     plt.rcParams['figure.figsize'] = (5,5)
     plt.rcParams['font.size'] = 12
     sns.set(rc={'font.size':12,'figure.figsize':(5,5)})
-    countplot = sns.countplot(reviews['predictedSentiment'])
+    countplot = sns.countplot(reviews['predictedSentiment'],palette='viridis',order=reviews['predictedSentiment'].value_counts().index)
     countplot.set(xlabel="predicted sentiment")
     fig = countplot.get_figure()
     filename = "static/images/plots/countplot{}{}{}".format(random.randint(1000,2000),round(time.time()),'.png')
@@ -387,16 +402,17 @@ def predictFile():
         fig.savefig(filename)
         plt.close()
 
-    plt.rcParams['figure.figsize'] = (5,5)
-    plt.rcParams['font.size'] = 12
-    sns.set(rc={'font.size':12,'figure.figsize':(5,5)})
-    plot = sns.pairplot(reviews.select_dtypes(['number']).drop(['predictedSentimentConfidence'],axis=1).dropna())
-    filename = "static/images/plots/pairplot{}{}{}".format(random.randint(1000,2000),round(time.time()),'.png')
-    title = "Pair Plot"
-    description = "This graph provides a scatterplot plotting each numeric variable against all the others to identify trends."
-    images.append([filename,title,description])
-    plot.savefig(filename)
-    plt.close()
+    # Pairplot takes too much time and provides too little value
+    # plt.rcParams['figure.figsize'] = (5,5)
+    # plt.rcParams['font.size'] = 12
+    # sns.set(rc={'font.size':12,'figure.figsize':(5,5)})
+    # plot = sns.pairplot(reviews.select_dtypes(['number']).drop(['predictedSentimentConfidence'],axis=1).dropna())
+    # filename = "static/images/plots/pairplot{}{}{}".format(random.randint(1000,2000),round(time.time()),'.png')
+    # title = "Pair Plot"
+    # description = "This graph provides a scatterplot plotting each numeric variable against all the others to identify trends."
+    # images.append([filename,title,description])
+    # plot.savefig(filename)
+    # plt.close()
 
     # Save the file to allow the user to download it if they choose.
     filename = "tempFile{}{}".format(random.randint(0,1000),round(time.time()))
