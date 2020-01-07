@@ -146,8 +146,8 @@ def analyze_dataset(dataset):
     plot.get_figure().tight_layout()
     # fig = plot.get_figure()
     filename = "static/images/plots/countplot1{}{}{}".format(random.randint(1000,2000),round(time.time()),'.png')
-    title = "Predicted Sentiment vs Actual Sentiment"
-    description = "This graph shows the count of reviews categorized by predicted sentiment of positive or negative vs the actual sentiment of positive or negative. For the purposes of this application, 3-5 stars are considered positive and 1-2 stars are considered negative."
+    title = "Predicted Sentiment vs. Actual Sentiment"
+    description = "This graph shows the count of reviews categorized by predicted sentiment of positive or negative vs. the actual sentiment of positive or negative. For the purposes of this application, 3-5 stars are considered positive and 1-2 stars are considered negative."
     images.append([filename,title,description])
     # fig.tight_layout()
     plt.savefig(filename)
@@ -366,7 +366,7 @@ def predictFile():
     fig = countplot.get_figure()
     filename = "static/images/plots/countplot{}{}{}".format(random.randint(1000,2000),round(time.time()),'.png')
     title = "Predicted Sentiment"
-    description = "This graph shows the count of reviews categorized by predicted sentiment of positive (1) or negative (0)."
+    description = "This graph shows the count of reviews categorized by predicted sentiment of positive or negative."
     images.append([filename,title,description])
     fig.tight_layout()
     fig.savefig(filename)
