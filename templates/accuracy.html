@@ -1,22 +1,22 @@
 <br/>
-<div style="text-align:center;">
+<div class="text-align-center">
   <b>Accuracy reports</b>
 </div>
 <br/><br/><br/>
 <div class="container">
   <div class="row">
-    <div class="col-sm" style="text-align:center;">
+    <div class="col-sm" class="text-align-center">
       <h3>Confusion Matrix</h3>
       {{ conf_matrix|safe }}
     </div>
-    <div class="col-sm" style="text-align:center;">
+    <div class="col-sm" class="text-align-center">
       <h3>Classification Report</h3>
       {{ class_report|safe }}
     </div>
   </div>
   <br/>
   <div class="row">
-    <div class="col-sm" style="text-align:center;">
+    <div class="col-sm" class="text-align-center">
       <h5>Overall Accuracy: {{ accuracy|safe }}</h5>
     </div>
   </div>

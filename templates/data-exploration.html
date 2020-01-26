@@ -20,7 +20,7 @@
 {{ accuracy|safe }}
 
 <br/><br/>
-<div style="text-align:center;">
+<div class="text-align-center">
   <b>Most Informative Features</b>
 </div>
 <br/><br/>
@@ -34,7 +34,7 @@
   {% for table in coefficientTables %}
   <div class="col mb-4">
     <div class="card">
-      <div class="card-body" style="text-align:center;">
+      <div class="card-body" class="text-align-center">
         <h5 class="card-title">{{ table[1] }}</h5>
       </div>
       {{ table[0]|safe }}
@@ -52,7 +52,7 @@
 <br/><br/><br/>
 
 
-<div style="text-align:center;">
+<div class="text-align-center">
   <b>10 rows of the updated dataset</b><br/><br/><br/><br/>
 
   {{ datasetTable|safe }}

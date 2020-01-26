@@ -252,7 +252,7 @@ def analyzeReview():
 @require_login()
 def predictReview():
     """
-    API: Predict the sentiment in a single review.
+    Predict the sentiment in a single review and return the results in an html template.
     """
 
     X = [clean_review(request.form['review'])]
@@ -279,7 +279,7 @@ def analyzeFile():
 @require_login()
 def predictFile():
     """
-    API to predict the sentiment in a csv file and return a table with sentiment and confidence columns appended.
+    Predict the sentiment in a csv file and return plots, accuracy reports, coefficient tables, and an updated dataset.
     """
 
     # Receive a file from the user.
